@@ -4,32 +4,32 @@ import { ref, get } from 'firebase/database';
 import { realtimeDb } from './FirebaseConfig';
 
 const imageMapping = {
-  1: '../assets/a.png',
-  2: '../assets/b.png',
-  3: '../assets/c.png',
-  4: '../assets/d.png',
-  5: '../assets/e.png',
-  6: '../assets/f.png',
-  7: '../assets/g.png',
-  8: '../assets/h.png',
-  9: '../assets/i.png',
-  10: '../assets/j.png',
-  11: '../assets/k.png',
-  12: '../assets/l.png',
-  13: '../assets/m.png',
-  14: '../assets/n.png',
-  15: '../assets/o.png',
-  16: '../assets/p.png',
-  17: '../assets/q.png',
-  18: '../assets/r.png',
-  19: '../assets/s.png',
-  20: '../assets/t.png',
-  21: '../assets/u.png',
-  22: '../assets/v.png',
-  23: '../assets/w.png',
-  24: '../assets/x.png',
-  25: '../assets/y.png',
-  26: '../assets/z.png',
+  0: '/assets/a.png',
+  1: '/assets/b.png',
+  2: '/assets/c.png',
+  3: '/assets/d.png',
+  4: '/assets/e.png',
+  5: '/assets/f.png',
+  6: '/assets/g.png',
+  7: '/assets/h.png',
+  8: '/assets/i.png',
+  9: '/assets/j.png',
+  10: '/assets/k.png',
+  11: '/assets/l.png',
+  12: '/assets/m.png',
+  13: '/assets/n.png',
+  14: '/assets/o.png',
+  15: '/assets/p.png',
+  16: '/assets/q.png',
+  17: '/assets/r.png',
+  18: '/assets/s.png',
+  19: '/assets/t.png',
+  20: '/assets/u.png',
+  21: '/assets/v.png',
+  22: '/assets/w.png',
+  23: '/assets/x.png',
+  24: '/assets/y.png',
+  25: '/assets/z.png',
 };
 
 const fetchAndSendData = async () => {
@@ -106,7 +106,7 @@ const LetterDisplay = () => {
     try {
       const data = await fetchAndSendData();
       const predictedLabel = data.predicted_label; // Nhận label từ API
-      const letterFromClass = String.fromCharCode(65 + predictedLabel - 1); // Chuyển đổi label thành chữ cái (1 -> 'A')
+      const letterFromClass = String.fromCharCode(65 + predictedLabel); // Chuyển đổi label thành chữ cái (1 -> 'A')
       setLetters((prevLetters) => prevLetters + letterFromClass); // Nối chữ cái vào chuỗi
       setImageSrc(imageMapping[predictedLabel]); // Lấy hình ảnh tương ứng với label
     } catch (error) {
