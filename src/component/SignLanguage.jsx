@@ -3,6 +3,35 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { ref, get } from 'firebase/database';
 import { realtimeDb } from './FirebaseConfig';
 
+const imageMapping = {
+  1: '../assets/a.png',
+  2: '../assets/b.png',
+  3: '../assets/c.png',
+  4: '../assets/d.png',
+  5: '../assets/e.png',
+  6: '../assets/f.png',
+  7: '../assets/g.png',
+  8: '../assets/h.png',
+  9: '../assets/i.png',
+  10: '../assets/j.png',
+  11: '../assets/k.png',
+  12: '../assets/l.png',
+  13: '../assets/m.png',
+  14: '../assets/n.png',
+  15: '../assets/o.png',
+  16: '../assets/p.png',
+  17: '../assets/q.png',
+  18: '../assets/r.png',
+  19: '../assets/s.png',
+  20: '../assets/t.png',
+  21: '../assets/u.png',
+  22: '../assets/v.png',
+  23: '../assets/w.png',
+  24: '../assets/x.png',
+  25: '../assets/y.png',
+  26: '../assets/z.png',
+};
+
 const fetchAndSendData = async () => {
   try {
     // Lấy dữ liệu tilt
@@ -14,9 +43,15 @@ const fetchAndSendData = async () => {
     }
     // Lấy dữ liệu accel (9 giá trị)
     const accelRefs = [
-      "/IoT/accel1_x", "/IoT/accel1_y", "/IoT/accel1_z",
-      "/IoT/accel2_x", "/IoT/accel2_y", "/IoT/accel2_z",
-      "/IoT/accel3_x", "/IoT/accel3_y", "/IoT/accel3_z"
+      '/IoT/accel1_x',
+      '/IoT/accel1_y',
+      '/IoT/accel1_z',
+      '/IoT/accel2_x',
+      '/IoT/accel2_y',
+      '/IoT/accel2_z',
+      '/IoT/accel3_x',
+      '/IoT/accel3_y',
+      '/IoT/accel3_z',
     ];
     const accelData = await Promise.all(
       accelRefs.map(async (path) => {
@@ -31,36 +66,38 @@ const fetchAndSendData = async () => {
       accel: accelData,
     };
 
-    console.log("Payload gửi API:", requestBody);
+    console.log('Payload gửi API:', requestBody);
 
     // Gửi dữ liệu đến API
-    const response = await fetch("https://personal-noelle-phananhlocpal-3ae312a3.koyeb.app/predict", {
-      method: "POST",
+    const response = await fetch('https://personal-noelle-phananhlocpal-3ae312a3.koyeb.app/predict', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
     });
 
     const responseData = await response.json();
-    console.log("Phản hồi từ API:", responseData);
+    console.log('Phản hồi từ API:', responseData);
     return responseData;
   } catch (error) {
-    console.error("Error fetching or sending data:", error);
+    console.error('Error fetching or sending data:', error);
     throw error;
   }
 };
+
 const LetterDisplay = () => {
   const [letters, setLetters] = useState('');
+  const [imageSrc, setImageSrc] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fetchDataTriggered, setFetchDataTriggered] = useState(false);
   const navigate = useNavigate(); // Khởi tạo navigate
 
   // Kiểm tra trạng thái đăng nhập
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
-      navigate("/login"); // Điều hướng nếu chưa đăng nhập
+      navigate('/login'); // Điều hướng nếu chưa đăng nhập
     }
   }, [navigate]);
 
@@ -68,9 +105,10 @@ const LetterDisplay = () => {
     setIsLoading(true);
     try {
       const data = await fetchAndSendData();
-      const predictedClass = data.predicted_class;
-      const letterFromClass = String.fromCharCode(65 + predictedClass); // Chuyển đổi predicted_class thành chữ cái
+      const predictedLabel = data.predicted_label; // Nhận label từ API
+      const letterFromClass = String.fromCharCode(65 + predictedLabel - 1); // Chuyển đổi label thành chữ cái (1 -> 'A')
       setLetters((prevLetters) => prevLetters + letterFromClass); // Nối chữ cái vào chuỗi
+      setImageSrc(imageMapping[predictedLabel]); // Lấy hình ảnh tương ứng với label
     } catch (error) {
       console.error('Error fetching the letter:', error);
     } finally {
@@ -90,6 +128,7 @@ const LetterDisplay = () => {
 
   const clearLetters = () => {
     setLetters(''); // Xóa chuỗi các chữ cái
+    setImageSrc(''); // Xóa hình ảnh hiển thị
   };
 
   return (
@@ -97,6 +136,7 @@ const LetterDisplay = () => {
       <h1 className="text-2xl font-bold">Hiển thị và đọc chữ cái</h1>
       <div className="mt-6">
         <h2 className="text-xl mb-5">Chữ cái: {letters}</h2>
+        {imageSrc && <img src={imageSrc} alt="Hình chữ cái" className="mx-auto mb-5 w-32 h-32" />}
         <button
           onClick={fetchLetter}
           className="px-4 py-2 text-lg bg-blue-500 text-white rounded hover:bg-blue-600"
