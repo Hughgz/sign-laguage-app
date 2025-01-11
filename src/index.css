@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+#canvas {
+  pointer-events: none; /* Vô hiệu hóa tương tác chuột */
+  position: fixed; /* Định vị canvas cố định */
+  top: 0; /* Đẩy canvas lên đầu */
+  left: 0; /* Đẩy canvas sang trái */
+  width: 100vw; /* Độ rộng toàn màn hình */
+  height: 100vh; /* Chiều cao toàn màn hình */
+  z-index: 99999; /* Đảm bảo nằm trên cùng */
+}
