@@ -132,11 +132,14 @@ const LetterDisplay = () => {
       const data = await fetchAndSendData();
       const predictedLabel = data.predicted_label;
       const letterFromClass = String.fromCharCode(65 + predictedLabel);
+  
+      // Cập nhật state `letters` và lưu vào Firestore một cách tách biệt
       setLetters((prevLetters) => {
         const updatedLetters = prevLetters + letterFromClass;
-        saveLettersToFirestore(updatedLetters);
+        saveLettersToFirestore(updatedLetters); // Lưu vào Firestore
         return updatedLetters;
       });
+  
       setImageSrc(imageMapping[predictedLabel]);
     } catch (error) {
       console.error('Error fetching the letter:', error);
@@ -144,7 +147,7 @@ const LetterDisplay = () => {
       setIsLoading(false);
       setFetchDataTriggered(true);
     }
-  };
+  };  
 
   const speakLetter = () => {
     if ('speechSynthesis' in window) {
