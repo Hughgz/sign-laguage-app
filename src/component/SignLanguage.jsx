@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import { ref, get } from 'firebase/database';
-import { realtimeDb } from './FirebaseConfig';
+import { saveLettersToFirestore } from "./Auth";
+import { firestore, realtimeDb } from './FirebaseConfig';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const imageMapping = {
   0: '/assets/a.png',
@@ -34,14 +36,13 @@ const imageMapping = {
 
 const fetchAndSendData = async () => {
   try {
-    // Lấy dữ liệu tilt
     const tiltData = [];
     for (let i = 1; i <= 11; i++) {
       const tiltRef = ref(realtimeDb, `/IoT/tilt/tilt_${i}`);
       const tiltSnapshot = await get(tiltRef);
       tiltData.push(tiltSnapshot.val());
     }
-    // Lấy dữ liệu accel (9 giá trị)
+
     const accelRefs = [
       '/IoT/accel1_x',
       '/IoT/accel1_y',
@@ -60,15 +61,11 @@ const fetchAndSendData = async () => {
       })
     );
 
-    // Chuẩn bị payload để gửi đến API
     const requestBody = {
       tilt: tiltData,
       accel: accelData,
     };
 
-    console.log('Payload gửi API:', requestBody);
-
-    // Gửi dữ liệu đến API
     const response = await fetch('https://personal-noelle-phananhlocpal-3ae312a3.koyeb.app/predict', {
       method: 'POST',
       headers: {
@@ -78,11 +75,28 @@ const fetchAndSendData = async () => {
     });
 
     const responseData = await response.json();
-    console.log('Phản hồi từ API:', responseData);
     return responseData;
   } catch (error) {
     console.error('Error fetching or sending data:', error);
     throw error;
+  }
+};
+
+const fetchUserLetters = async () => {
+  try {
+    const userId = localStorage.getItem('uid');
+    const lettersRef = collection(firestore, 'user_letters');
+    const q = query(lettersRef, where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+
+    const history = [];
+    querySnapshot.forEach((doc) => {
+      history.push(doc.data());
+    });
+
+    return history;
+  } catch (error) {
+    console.error('Lỗi khi lấy lịch sử chữ cái:', error);
   }
 };
 
@@ -91,24 +105,39 @@ const LetterDisplay = () => {
   const [imageSrc, setImageSrc] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fetchDataTriggered, setFetchDataTriggered] = useState(false);
-  const navigate = useNavigate(); // Khởi tạo navigate
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const navigate = useNavigate();
 
-  // Kiểm tra trạng thái đăng nhập
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-      navigate('/login'); // Điều hướng nếu chưa đăng nhập
+    const userId = localStorage.getItem('uid');
+    if (!userId) {
+      console.error('Người dùng chưa đăng nhập, điều hướng về trang login.');
+      navigate('/login');
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const userHistory = await fetchUserLetters();
+      setHistory(userHistory);
+    };
+
+    fetchHistory();
+  }, []);
 
   const fetchLetter = async () => {
     setIsLoading(true);
     try {
       const data = await fetchAndSendData();
-      const predictedLabel = data.predicted_label; // Nhận label từ API
-      const letterFromClass = String.fromCharCode(65 + predictedLabel); // Chuyển đổi label thành chữ cái (1 -> 'A')
-      setLetters((prevLetters) => prevLetters + letterFromClass); // Nối chữ cái vào chuỗi
-      setImageSrc(imageMapping[predictedLabel]); // Lấy hình ảnh tương ứng với label
+      const predictedLabel = data.predicted_label;
+      const letterFromClass = String.fromCharCode(65 + predictedLabel);
+      setLetters((prevLetters) => {
+        const updatedLetters = prevLetters + letterFromClass;
+        saveLettersToFirestore(updatedLetters);
+        return updatedLetters;
+      });
+      setImageSrc(imageMapping[predictedLabel]);
     } catch (error) {
       console.error('Error fetching the letter:', error);
     } finally {
@@ -127,37 +156,66 @@ const LetterDisplay = () => {
   };
 
   const clearLetters = () => {
-    setLetters(''); // Xóa chuỗi các chữ cái
-    setImageSrc(''); // Xóa hình ảnh hiển thị
+    setLetters('');
+    setImageSrc('');
   };
 
   return (
-    <div className="text-center mt-12">
-      <h1 className="text-2xl font-bold">Hiển thị và đọc chữ cái</h1>
-      <div className="mt-6">
-        <h2 className="text-xl mb-5">Chữ cái: {letters}</h2>
-        {imageSrc && <img src={imageSrc} alt="Hình chữ cái" className="mx-auto mb-5 w-32 h-32" />}
-        <button
-          onClick={fetchLetter}
-          className="px-4 py-2 text-lg bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Đọc dữ liệu
-        </button>
-        <button
-          onClick={speakLetter}
-          className="px-4 py-2 text-lg bg-green-500 text-white rounded hover:bg-green-600 ml-4"
-          disabled={!fetchDataTriggered}
-        >
-          Đọc chữ cái
-        </button>
-        <button
-          onClick={clearLetters}
-          className="px-4 py-2 text-lg bg-red-500 text-white rounded hover:bg-red-600 ml-4"
-        >
-          Clear
-        </button>
+    <div className="bg-gray-100 min-h-screen flex flex-col items-center py-10">
+      <h1 className="text-4xl font-bold text-blue-600 mb-6">SmartSign - Hiển thị và đọc chữ cái</h1>
+      <div className="bg-white shadow-lg rounded-lg p-8 w-11/12 md:w-3/4 lg:w-1/2">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Chữ cái:</h2>
+        <div className="text-center mb-6">
+          <p className="text-lg font-medium text-gray-700">{letters || 'Chưa có chữ cái nào'}</p>
+          {imageSrc && <img src={imageSrc} alt="Hình chữ cái" className="mx-auto mt-4 w-24 h-24" />}
+        </div>
+        <div className="flex flex-wrap justify-center gap-4">
+          <button
+            onClick={fetchLetter}
+            className="bg-blue-500 text-white px-6 py-2 rounded shadow hover:bg-blue-600 focus:outline-none"
+          >
+            Đọc dữ liệu
+          </button>
+          <button
+            onClick={speakLetter}
+            className="bg-green-500 text-white px-6 py-2 rounded shadow hover:bg-green-600 focus:outline-none"
+            disabled={!fetchDataTriggered}
+          >
+            Đọc chữ cái
+          </button>
+          <button
+            onClick={clearLetters}
+            className="bg-red-500 text-white px-6 py-2 rounded shadow hover:bg-red-600 focus:outline-none"
+          >
+            Clear
+          </button>
+        </div>
+        {isLoading && <p className="text-center text-gray-500 mt-6">Đang tải dữ liệu...</p>}
+        <div className="mt-6">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="bg-yellow-500 text-white px-6 py-2 rounded shadow hover:bg-yellow-600 focus:outline-none"
+          >
+            {showHistory ? 'Ẩn lịch sử' : 'Hiển thị lịch sử'}
+          </button>
+          {showHistory && (
+            <div className="mt-4 bg-gray-50 p-4 rounded shadow">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Lịch sử chữ cái:</h3>
+              {history.length > 0 ? (
+                <ul className="list-disc pl-6">
+                  {history.map((item, index) => (
+                    <li key={index} className="text-gray-700">
+                      {item.letters} - {new Date(item.timestamp).toLocaleString()}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">Chưa có lịch sử.</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-      {isLoading && <p className="text-gray-500 mt-4">Đang tải dữ liệu...</p>}
     </div>
   );
 };

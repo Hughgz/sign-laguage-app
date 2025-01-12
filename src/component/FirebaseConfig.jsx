@@ -20,6 +20,7 @@ const app = initializeApp(firebaseConfig);
 // Khởi tạo Auth, Firestore, và Realtime Database
 const auth = getAuth(app);
 const db = getFirestore(app);
+const firestore = getFirestore(app);
 const realtimeDb = getDatabase(app);
 
-export { auth, db, realtimeDb };
+export { auth, db, realtimeDb, firestore};
