@@ -194,30 +194,6 @@ const LetterDisplay = () => {
           </button>
         </div>
         {isLoading && <p className="text-center text-gray-500 mt-6">Đang tải dữ liệu...</p>}
-        <div className="mt-6">
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="bg-yellow-500 text-white px-6 py-2 rounded shadow hover:bg-yellow-600 focus:outline-none"
-          >
-            {showHistory ? 'Ẩn lịch sử' : 'Hiển thị lịch sử'}
-          </button>
-          {showHistory && (
-            <div className="mt-4 bg-gray-50 p-4 rounded shadow">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Lịch sử chữ cái:</h3>
-              {history.length > 0 ? (
-                <ul className="list-disc pl-6">
-                  {history.map((item, index) => (
-                    <li key={index} className="text-gray-700">
-                      {item.letters} - {new Date(item.timestamp).toLocaleString()}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">Chưa có lịch sử.</p>
-              )}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

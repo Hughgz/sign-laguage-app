@@ -17,17 +17,17 @@ const HomePage = () => {
         <h2 className="text-2xl font-bold mb-8">Tại sao chọn SmartSign?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white p-6 rounded shadow">
-            <img src="/images/feature1.png" alt="Dễ sử dụng" className="w-16 h-16 mx-auto mb-4" />
+            <img src="https://www.kindpng.com/picc/m/164-1649982_easy-to-use-icon-png-transparent-png.png" alt="Dễ sử dụng" className="w-16 h-16 mx-auto mb-4" />
             <h3 className="text-xl font-semibold">Dễ dàng sử dụng</h3>
             <p className="mt-2">Giao diện thân thiện, hỗ trợ mọi người ở mọi trình độ công nghệ.</p>
           </div>
           <div className="bg-white p-6 rounded shadow">
-            <img src="/images/feature2.png" alt="Công nghệ AI" className="w-16 h-16 mx-auto mb-4" />
+            <img src="https://sds-platform-private.s3-us-east-2.amazonaws.com/blog-images/evWKLxAsySyEmCXzv" alt="Công nghệ AI" className="w-16 h-16 mx-auto mb-4" />
             <h3 className="text-xl font-semibold">Công nghệ AI hiện đại</h3>
             <p className="mt-2">Phân tích ngôn ngữ ký hiệu nhanh chóng và chính xác.</p>
           </div>
           <div className="bg-white p-6 rounded shadow">
-            <img src="/images/feature3.png" alt="Hỗ trợ đa nền tảng" className="w-16 h-16 mx-auto mb-4" />
+            <img src="https://static.vecteezy.com/system/resources/previews/003/836/178/non_2x/cross-platform-support-concept-icon-software-development-idea-thin-line-illustration-mobile-device-programming-responsive-application-management-isolated-outline-drawing-vector.jpg" alt="Hỗ trợ đa nền tảng" className="w-16 h-16 mx-auto mb-4" />
             <h3 className="text-xl font-semibold">Hỗ trợ đa nền tảng</h3>
             <p className="mt-2">Tích hợp dễ dàng trên cả thiết bị di động và máy tính.</p>
           </div>
